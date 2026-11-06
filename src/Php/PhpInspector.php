@@ -35,6 +35,9 @@ final class PhpInspector
     private const UNARY = ['asserttrue', 'assertfalse', 'assertnull', 'assertnotnull', 'assertempty', 'assertnotempty'];
     private const BINARY = ['assertsame', 'assertequals'];
     private const EXPECTED = ['assertsame', 'assertequals', 'assertequalscanonicalizing'];
+    /** assertهایی که یک مقدار دقیق را می‌سنجند؛ جایگزینی‌شان با چک ضعیف‌تر، تست را سست می‌کند */
+    private const EXACT = ['assertsame', 'assertequals', 'assertequalscanonicalizing', 'assertequalsignoringcase', 'assertjsonstringequalsjsonstring'];
+    private const PEST_EXACT = ['tobe', 'toequal', 'tostrictequal'];
 
     private Standard $printer;
 
@@ -68,8 +71,8 @@ final class PhpInspector
             }
         }
 
-        foreach ($this->pestTests($ast) as [$key, $line, $stmts, $skips]) {
-            $facts[$key] = $this->analyze($key, $line, true, $stmts, $skips);
+        foreach ($this->pestTests($ast) as [$key, $line, $stmts, $skips, $exact]) {
+            $facts[$key] = $this->analyze($key, $line, true, $stmts, $skips, $exact);
         }
 
         return $facts;
@@ -96,7 +99,7 @@ final class PhpInspector
         return str_contains((string) $method->getDocComment()?->getText(), '@test');
     }
 
-    /** @return list<array{0: string, 1: int, 2: array, 3: int}> */
+    /** @return list<array{0: string, 1: int, 2: array, 3: int, 4: int}> */
     private function pestTests(array $ast): array
     {
         $statements = [];
@@ -130,15 +133,16 @@ final class PhpInspector
                 $callback instanceof ArrowFunction => [new Stmt\Return_($callback->expr)],
                 default => [],
             };
-            $tests[] = ['pest:' . $args[0]->value, $expr->getStartLine(), $stmts, count(array_intersect($chain, ['skip', 'todo']))];
+            $tests[] = ['pest:' . $args[0]->value, $expr->getStartLine(), $stmts, count(array_intersect($chain, ['skip', 'todo'])), 0];
         }
 
         return $tests;
     }
 
-    private function analyze(string $key, int $line, bool $isTest, array $stmts, int $extraSkips = 0): MethodFacts
+    private function analyze(string $key, int $line, bool $isTest, array $stmts, int $extraSkips = 0, int $extraExact = 0): MethodFacts
     {
         $assertions = 0;
+        $exact = $extraExact;
         $skips = $extraSkips;
         $tautologies = [];
         $expected = [];
@@ -162,6 +166,11 @@ final class PhpInspector
                 continue;
             }
 
+            if ($call instanceof MethodCall && in_array($name, self::PEST_EXACT, true)) {
+                $exact++;
+
+                continue;
+            }
             if (in_array($name, ['marktestskipped', 'marktestincomplete'], true)) {
                 $skips++;
 
@@ -172,6 +181,9 @@ final class PhpInspector
             }
 
             $assertions++;
+            if (in_array($name, self::EXACT, true)) {
+                $exact++;
+            }
             if (in_array($name, self::UNARY, true) && isset($values[0]) && $this->isLiteral($values[0])) {
                 $tautologies[] = $call->getStartLine();
             }
@@ -231,6 +243,7 @@ final class PhpInspector
             $swallowed,
             $special,
             $isTest ? $unguarded : 0,
+            $exact,
         );
     }
 

@@ -24,5 +24,6 @@ final readonly class MethodFacts
         public int $swallowedCatches,
         public int $literalSpecialCases,
         public int $unguardedTryInTest,
+        public int $exactAssertions = 0,
     ) {}
 }

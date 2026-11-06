@@ -2,6 +2,7 @@
 
 ## [0.1.0] — 2026-11-07
 
+- `assertions-weakened`: exact assertions replaced by weaker checks while the assertion count stays the same.
 - `scan`: deterministic inspection of working, staged, or branch changes for weakened tests
   (removed, skipped, emptied, tautological, bent expectations), swallowed errors, removed validation,
   fixed-input special cases, new suppressions, and relaxed PHPUnit / PHPStan / Psalm / Composer / Infection / CI settings.

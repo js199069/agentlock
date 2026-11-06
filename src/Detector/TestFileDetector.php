@@ -56,6 +56,9 @@ final class TestFileDetector
                 $findings[] = $n->assertions === 0
                     ? new Finding('test-emptied', Finding::HIGH, $change->path, $n->line, "Test {$key} has no assertions left (was {$o->assertions})")
                     : new Finding('assertions-reduced', Finding::MEDIUM, $change->path, $n->line, "Assertions in {$key}: {$o->assertions} → {$n->assertions}");
+            } elseif ($n->exactAssertions < $o->exactAssertions) {
+                $findings[] = new Finding('assertions-weakened', Finding::MEDIUM, $change->path, $n->line,
+                    "Exact assertions in {$key}: {$o->exactAssertions} → {$n->exactAssertions}, replaced by weaker checks");
             }
             if (count($n->tautologyLines) > count($o->tautologyLines)) {
                 $findings[] = new Finding('tautology', Finding::HIGH, $change->path, max($n->tautologyLines), "An assertion that cannot fail was added to {$key}");
