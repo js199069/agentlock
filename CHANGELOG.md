@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.1.0] — unreleased
+## [0.1.0] — 2026-11-07
 
 - `scan`: deterministic inspection of working, staged, or branch changes for weakened tests
   (removed, skipped, emptied, tautological, bent expectations), swallowed errors, removed validation,

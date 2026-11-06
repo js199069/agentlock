@@ -205,16 +205,15 @@ final class PhpInspector
             if (! $cond instanceof Identical && ! $cond instanceof Equal) {
                 continue;
             }
-            $leftLiteral = $this->isLiteral($cond->left);
-            if ($leftLiteral === $this->isLiteral($cond->right)) {
-                continue;
-            }
-            // مقایسه با null و true/false بررسی عادی است، نه حالت ویژه
-            if ($this->isNullOrBool($leftLiteral ? $cond->left : $cond->right)) {
+            // شکل تقلب: یک متغیر با یک مقدار مشخص مقایسه می‌شود و یک جواب مشخص برمی‌گردد
+            $literal = $this->isLiteral($cond->left) ? $cond->left : ($this->isLiteral($cond->right) ? $cond->right : null);
+            $other = $literal === $cond->left ? $cond->right : $cond->left;
+            if ($literal === null || ! $other instanceof Expr\Variable || $this->isTrivial($literal)) {
                 continue;
             }
             $body = array_values(array_filter($if->stmts, fn ($s) => ! $s instanceof Stmt\Nop));
-            if (count($body) === 1 && $body[0] instanceof Stmt\Return_ && $body[0]->expr !== null && $this->isLiteral($body[0]->expr)) {
+            if (count($body) === 1 && $body[0] instanceof Stmt\Return_ && $body[0]->expr !== null
+                && $this->isLiteral($body[0]->expr) && ! $this->isNullOrBool($body[0]->expr)) {
                 $special++;
             }
         }
@@ -274,6 +273,14 @@ final class PhpInspector
     private function isNullOrBool(Node $node): bool
     {
         return $node instanceof ConstFetch && in_array($node->name->toLowerString(), ['null', 'true', 'false'], true);
+    }
+
+    /** null، true/false، رشته‌ی خالی و آرایه‌ی خالی: مقایسه با این‌ها نگهبان عادی است، نه حالت ویژه */
+    private function isTrivial(Node $node): bool
+    {
+        return $this->isNullOrBool($node)
+            || ($node instanceof String_ && $node->value === '')
+            || ($node instanceof Expr\Array_ && $node->items === []);
     }
 
     private function print(Expr $expr): string

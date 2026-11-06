@@ -124,6 +124,21 @@ and CI with branch protection as the enforcement.
 
 ---
 
+## Evaluation
+
+Two questions matter for a tool like this: does it catch cheating, and does it stay quiet on honest work?
+
+- **Catching:** every rule has unit tests built from realistic cheats (a test emptied, skipped, or made tautological;
+  an error swallowed; a fixed answer for a fixed input; relaxed PHPUnit, PHPStan, Composer, CI and Infection settings).
+  A tautology planted by hand in a real project was reported with file, line and test name.
+- **Staying quiet:** the full history of a real project
+  ([mutagent](https://github.com/js199069/mutagent), 74 changed files, tests rewritten many times) was scanned as one
+  diff. The first version reported 0 high and 2 medium findings, both false positives from one rule
+  (`literal-special-case` flagged an ordinary predicate and an empty-array guard). After narrowing the rule to
+  "a variable compared with a specific value returns a specific value", the same scan reports nothing.
+
+This is a small evaluation by one author. Real agent sessions with labelled cheats are the next step.
+
 ## Design decisions
 
 **Independent of the agent.** The agent cannot be its own reviewer. agentlock runs outside it, on the diff, with

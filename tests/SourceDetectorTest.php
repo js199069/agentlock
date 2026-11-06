@@ -69,4 +69,15 @@ final class SourceDetectorTest extends TestCase
     {
         $this->assertContains('medium:suppression-added', $this->rules('public function total', "/** @phpstan-ignore-next-line */\n    public function total"));
     }
+
+    public function test_ordinary_guards_and_predicates_are_not_special_cases(): void
+    {
+        // دو هشدار نادرست واقعی از تاریخچه‌ی mutagent
+        $old = "<?php\nfinal class A\n{\n    public function f(array \$items, object \$attr): mixed\n    {\n        return \$items;\n    }\n}\n";
+        $new = "<?php\nfinal class A\n{\n    public function f(array \$items, object \$attr): mixed\n    {\n        if (\$attr->name === 'Test') {\n            return true;\n        }\n        if (\$items === []) {\n            return [[], 'empty'];\n        }\n\n        return \$items;\n    }\n}\n";
+
+        $findings = (new SourceDetector())->detect(new FileChange('src/A.php', 'M', $old, $new));
+
+        $this->assertSame([], array_map(fn (Finding $f) => $f->rule, $findings));
+    }
 }
