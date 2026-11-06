@@ -1,0 +1,38 @@
+{
+    "name": "js199069/agentlock",
+    "description": "Catch AI coding agents that weaken tests to make them pass, and lock the tests they must not touch.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["ai", "coding-agent", "phpunit", "pest", "code-review", "ci", "reward-hacking", "mutation-testing"],
+    "homepage": "https://github.com/js199069/agentlock",
+    "authors": [
+        { "name": "js199069", "homepage": "https://github.com/js199069" }
+    ],
+    "support": {
+        "issues": "https://github.com/js199069/agentlock/issues",
+        "source": "https://github.com/js199069/agentlock"
+    },
+    "require": {
+        "php": "^8.3",
+        "ext-dom": "*",
+        "nikic/php-parser": "^5.0",
+        "symfony/console": "^7.4|^8.0",
+        "symfony/process": "^7.4|^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5|^12.0"
+    },
+    "suggest": {
+        "infection/infection": "For the optional --mutation check (test strength before and after a change)"
+    },
+    "autoload": {
+        "psr-4": { "Js199069\\Agentlock\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "Js199069\\Agentlock\\Tests\\": "tests/" }
+    },
+    "bin": ["bin/agentlock"],
+    "config": { "sort-packages": true },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
